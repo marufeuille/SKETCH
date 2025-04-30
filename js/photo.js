@@ -31,6 +31,33 @@ SketchApp.Photo.handleDrawingAreaMouseUp = function() {
   SketchApp.isDragging = false;
 };
 
+// 描画エリアのタッチ移動イベント（写真のドラッグ用）
+SketchApp.Photo.handleDrawingAreaTouchMove = function(e) {
+  if (!SketchApp.isDragging || !SketchApp.selectedPhoto) return;
+  
+  e.preventDefault();
+  const rect = SketchApp.drawingArea.getBoundingClientRect();
+  const touch = e.touches[0];
+  const x = touch.clientX - rect.left - SketchApp.dragOffsetX;
+  const y = touch.clientY - rect.top - SketchApp.dragOffsetY;
+  
+  // 選択中の写真の位置を更新
+  const photoElement = document.getElementById(`photo-${SketchApp.selectedPhoto.id}`);
+  if (photoElement) {
+    photoElement.style.left = `${x}px`;
+    photoElement.style.top = `${y}px`;
+    
+    // 写真オブジェクトの位置も更新
+    SketchApp.selectedPhoto.x = x;
+    SketchApp.selectedPhoto.y = y;
+  }
+};
+
+// 描画エリアのタッチ終了イベント（写真のドラッグ終了用）
+SketchApp.Photo.handleDrawingAreaTouchEnd = function() {
+  SketchApp.isDragging = false;
+};
+
 // 写真アップロード処理
 SketchApp.Photo.handlePhotoUpload = function(e) {
   const file = e.target.files[0];
@@ -111,7 +138,7 @@ SketchApp.Photo.createPhotoElement = function(photo) {
   });
   photoElement.appendChild(deleteButton);
   
-  // 選択イベントを追加
+  // マウス選択イベントを追加
   photoElement.addEventListener('mousedown', (e) => {
     if (SketchApp.currentTool !== 'select') return;
     
@@ -130,6 +157,28 @@ SketchApp.Photo.createPhotoElement = function(photo) {
     SketchApp.dragOffsetX = e.clientX - rect.left;
     SketchApp.dragOffsetY = e.clientY - rect.top;
   });
+  
+  // タッチ選択イベントを追加
+  photoElement.addEventListener('touchstart', (e) => {
+    if (SketchApp.currentTool !== 'select') return;
+    
+    e.preventDefault(); // デフォルトのスクロール動作を防止
+    e.stopPropagation();
+    
+    // 他の写真の選択を解除
+    SketchApp.Photo.unselectAllPhotos();
+    
+    // この写真を選択
+    photoElement.classList.add('selected');
+    SketchApp.selectedPhoto = photo;
+    
+    // ドラッグ開始
+    SketchApp.isDragging = true;
+    const rect = photoElement.getBoundingClientRect();
+    const touch = e.touches[0];
+    SketchApp.dragOffsetX = touch.clientX - rect.left;
+    SketchApp.dragOffsetY = touch.clientY - rect.top;
+  }, { passive: false });
   
   // 描画エリアに追加
   SketchApp.drawingArea.appendChild(photoElement);

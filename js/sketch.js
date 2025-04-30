@@ -89,6 +89,10 @@ SketchApp.setupEventListeners = function() {
   SketchApp.drawingArea.addEventListener('mousemove', SketchApp.Photo.handleDrawingAreaMouseMove);
   SketchApp.drawingArea.addEventListener('mouseup', SketchApp.Photo.handleDrawingAreaMouseUp);
   
+  // 写真のタッチドラッグイベント
+  SketchApp.drawingArea.addEventListener('touchmove', SketchApp.Photo.handleDrawingAreaTouchMove, { passive: false });
+  SketchApp.drawingArea.addEventListener('touchend', SketchApp.Photo.handleDrawingAreaTouchEnd);
+  
   // ツールボタン
   SketchApp.toolButtons.forEach(button => {
     button.addEventListener('click', () => {
