@@ -1,0 +1,14 @@
+{
+  "name": "sketch",
+  "version": "1.0.0",
+  "description": "- **目的:** 子供が楽しく写真や絵を使って日々の出来事を記録できるブラウザベースのアプリケーション - **ターゲットユーザー:** 5 歳〜10 歳程度の子供とその保護者 - **主な機能:**   - 日別の日記作成・編集   - 写真の撮影と添付   - ApplePencil などのスタイラスを使った手書きでの文字や絵の描画   - 過去の日記の一覧表示・閲覧 - **技術スタック:**   - フロントエンド: HTML5, CSS3, JavaScript (Canvas API, MediaDevices API, IndexedDB など)   - データストレージ: IndexedDB (クライアントサイドストレージ)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "python -m http.server 8000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

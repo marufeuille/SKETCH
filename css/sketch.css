@@ -1,0 +1,212 @@
+/* スケッチアプリのスタイル */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #FFF9E6;
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 800px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.app-header {
+  background-color: #4A90E2;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 2em;
+}
+
+.notebook-content {
+  background-color: #FDFBFB;
+  padding: 20px;
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.date-display {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+.date-display input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.action-buttons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+
+.action-button {
+  background-color: #F5A623;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  background-color: #E0951A;
+}
+
+.drawing-area {
+  flex-grow: 1;
+  position: relative;
+  margin-top: 60px;
+  border: 1px solid #ccc;
+  min-height: 500px;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  z-index: 1;
+}
+
+.photo-container {
+  position: absolute;
+  z-index: 2;
+  cursor: move;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+
+.photo-container.selected {
+  border: 2px dashed #4A90E2;
+}
+
+.photo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.photo-container .delete-button {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+}
+
+.photo-container.selected .delete-button {
+  display: block;
+}
+
+.drawing-toolbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tool-group {
+  display: flex;
+  gap: 5px;
+}
+
+.tool-button {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tool-button.active {
+  background-color: #4A90E2;
+  color: white;
+  border-color: #357ABD;
+}
+
+.color-palette {
+  display: flex;
+  gap: 5px;
+}
+
+.color-button {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.color-button.active {
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+.size-selector {
+  display: flex;
+  gap: 5px;
+}
+
+.size-button {
+  padding: 2px 5px;
+  cursor: pointer;
+}
+
+.size-button.active {
+  font-weight: bold;
+  color: #4A90E2;
+}
+
+.clear-button {
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.clear-button:hover {
+  background-color: #eee;
+}
