@@ -157,7 +157,7 @@ body {
   position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 10;
+  z-index: 20; /* キャンバス(z-index: 3)より高い値に設定 */
   background-color: rgba(255, 255, 255, 0.9);
   padding: 10px;
   border-radius: 5px;

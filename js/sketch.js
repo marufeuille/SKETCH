@@ -129,7 +129,17 @@ SketchApp.setupEventListeners = function() {
   SketchApp.drawingArea.addEventListener('mouseout', SketchApp.Drawing.handleCanvasMouseOut);
   
   // タッチイベント（描画エリア全体に対して設定）
-  SketchApp.drawingArea.addEventListener('touchstart', SketchApp.Drawing.handleCanvasTouchStart);
+  // ツールバー内の要素がタップされた場合は、イベントを通過させる
+  SketchApp.drawingArea.addEventListener('touchstart', function(e) {
+    // ツールバー内の要素がタップされた場合は、イベントを通過させる
+    if (e.target.closest('.drawing-toolbar')) {
+      return;
+    }
+    
+    // それ以外の場合は通常の処理
+    SketchApp.Drawing.handleCanvasTouchStart(e);
+  }, { passive: false });
+  
   SketchApp.drawingArea.addEventListener('touchmove', SketchApp.Drawing.handleCanvasTouchMove);
   SketchApp.drawingArea.addEventListener('touchend', SketchApp.Drawing.handleCanvasTouchEnd);
   

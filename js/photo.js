@@ -207,6 +207,8 @@ SketchApp.Photo.createPhotoElement = function(photo) {
     const rect = photoElement.getBoundingClientRect();
     SketchApp.dragOffsetX = e.clientX - rect.left;
     SketchApp.dragOffsetY = e.clientY - rect.top;
+    
+    console.log(`写真を選択: ID=${photo.id} (マウス)`);
   });
   
   // タッチ選択イベントを追加
@@ -229,6 +231,8 @@ SketchApp.Photo.createPhotoElement = function(photo) {
     const touch = e.touches[0];
     SketchApp.dragOffsetX = touch.clientX - rect.left;
     SketchApp.dragOffsetY = touch.clientY - rect.top;
+    
+    console.log(`写真を選択: ID=${photo.id} (タッチ)`);
   }, { passive: false });
   
   // 描画エリアに追加
