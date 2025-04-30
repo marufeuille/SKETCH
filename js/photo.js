@@ -6,6 +6,13 @@
 // 写真管理機能の名前空間
 SketchApp.Photo = {};
 
+// リサイズ関連の変数
+SketchApp.Photo.isResizing = false;
+SketchApp.Photo.resizeStartX = 0;
+SketchApp.Photo.resizeStartY = 0;
+SketchApp.Photo.resizeStartWidth = 0;
+SketchApp.Photo.resizeStartHeight = 0;
+
 // 描画エリアのマウス移動イベント（写真のドラッグ用）
 SketchApp.Photo.handleDrawingAreaMouseMove = function(e) {
   if (!SketchApp.isDragging || !SketchApp.selectedPhoto) return;
@@ -138,6 +145,50 @@ SketchApp.Photo.createPhotoElement = function(photo) {
   });
   photoElement.appendChild(deleteButton);
   
+  // リサイズハンドルを追加
+  const resizeHandle = document.createElement('div');
+  resizeHandle.className = 'resize-handle';
+  photoElement.appendChild(resizeHandle);
+  
+  // リサイズハンドルのマウスイベント
+  resizeHandle.addEventListener('mousedown', (e) => {
+    if (SketchApp.currentTool !== 'select') return;
+    
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // リサイズ開始
+    SketchApp.Photo.isResizing = true;
+    SketchApp.Photo.resizeStartX = e.clientX;
+    SketchApp.Photo.resizeStartY = e.clientY;
+    SketchApp.Photo.resizeStartWidth = photo.width;
+    SketchApp.Photo.resizeStartHeight = photo.height;
+    
+    // リサイズ中のマウス移動イベントを追加
+    document.addEventListener('mousemove', SketchApp.Photo.handleResizeMouseMove);
+    document.addEventListener('mouseup', SketchApp.Photo.handleResizeMouseUp);
+  });
+  
+  // リサイズハンドルのタッチイベント
+  resizeHandle.addEventListener('touchstart', (e) => {
+    if (SketchApp.currentTool !== 'select') return;
+    
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // リサイズ開始
+    SketchApp.Photo.isResizing = true;
+    const touch = e.touches[0];
+    SketchApp.Photo.resizeStartX = touch.clientX;
+    SketchApp.Photo.resizeStartY = touch.clientY;
+    SketchApp.Photo.resizeStartWidth = photo.width;
+    SketchApp.Photo.resizeStartHeight = photo.height;
+    
+    // リサイズ中のタッチ移動イベントを追加
+    document.addEventListener('touchmove', SketchApp.Photo.handleResizeTouchMove, { passive: false });
+    document.addEventListener('touchend', SketchApp.Photo.handleResizeTouchEnd);
+  }, { passive: false });
+  
   // マウス選択イベントを追加
   photoElement.addEventListener('mousedown', (e) => {
     if (SketchApp.currentTool !== 'select') return;
@@ -227,4 +278,126 @@ SketchApp.Photo.unselectAllPhotos = function() {
     element.classList.remove('selected');
   });
   SketchApp.selectedPhoto = null;
+};
+
+// リサイズ中のマウス移動イベントハンドラ
+SketchApp.Photo.handleResizeMouseMove = function(e) {
+  if (!SketchApp.Photo.isResizing || !SketchApp.selectedPhoto) return;
+  
+  e.preventDefault();
+  
+  // マウスの移動量を計算
+  const deltaX = e.clientX - SketchApp.Photo.resizeStartX;
+  const deltaY = e.clientY - SketchApp.Photo.resizeStartY;
+  
+  // 縦横比を維持したリサイズ
+  const aspectRatio = SketchApp.Photo.resizeStartWidth / SketchApp.Photo.resizeStartHeight;
+  
+  // 大きい方の変化量に合わせてリサイズ
+  let newWidth, newHeight;
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    newWidth = Math.max(50, SketchApp.Photo.resizeStartWidth + deltaX);
+    newHeight = newWidth / aspectRatio;
+  } else {
+    newHeight = Math.max(50, SketchApp.Photo.resizeStartHeight + deltaY);
+    newWidth = newHeight * aspectRatio;
+  }
+  
+  // 最大サイズの制限
+  const maxWidth = SketchApp.canvas.width * 0.8;
+  const maxHeight = SketchApp.canvas.height * 0.8;
+  if (newWidth > maxWidth) {
+    newWidth = maxWidth;
+    newHeight = newWidth / aspectRatio;
+  }
+  if (newHeight > maxHeight) {
+    newHeight = maxHeight;
+    newWidth = newHeight * aspectRatio;
+  }
+  
+  // 写真要素のサイズを更新
+  const photoElement = document.getElementById(`photo-${SketchApp.selectedPhoto.id}`);
+  if (photoElement) {
+    photoElement.style.width = `${newWidth}px`;
+    photoElement.style.height = `${newHeight}px`;
+    
+    // 写真オブジェクトのサイズも更新
+    SketchApp.selectedPhoto.width = newWidth;
+    SketchApp.selectedPhoto.height = newHeight;
+  }
+};
+
+// リサイズ終了のマウスアップイベントハンドラ
+SketchApp.Photo.handleResizeMouseUp = function() {
+  if (!SketchApp.Photo.isResizing) return;
+  
+  SketchApp.Photo.isResizing = false;
+  
+  // イベントリスナーを削除
+  document.removeEventListener('mousemove', SketchApp.Photo.handleResizeMouseMove);
+  document.removeEventListener('mouseup', SketchApp.Photo.handleResizeMouseUp);
+  
+  console.log(`写真をリサイズしました (ID: ${SketchApp.selectedPhoto.id}, サイズ: ${SketchApp.selectedPhoto.width}x${SketchApp.selectedPhoto.height})`);
+};
+
+// リサイズ中のタッチ移動イベントハンドラ
+SketchApp.Photo.handleResizeTouchMove = function(e) {
+  if (!SketchApp.Photo.isResizing || !SketchApp.selectedPhoto) return;
+  
+  e.preventDefault();
+  
+  const touch = e.touches[0];
+  
+  // タッチの移動量を計算
+  const deltaX = touch.clientX - SketchApp.Photo.resizeStartX;
+  const deltaY = touch.clientY - SketchApp.Photo.resizeStartY;
+  
+  // 縦横比を維持したリサイズ
+  const aspectRatio = SketchApp.Photo.resizeStartWidth / SketchApp.Photo.resizeStartHeight;
+  
+  // 大きい方の変化量に合わせてリサイズ
+  let newWidth, newHeight;
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    newWidth = Math.max(50, SketchApp.Photo.resizeStartWidth + deltaX);
+    newHeight = newWidth / aspectRatio;
+  } else {
+    newHeight = Math.max(50, SketchApp.Photo.resizeStartHeight + deltaY);
+    newWidth = newHeight * aspectRatio;
+  }
+  
+  // 最大サイズの制限
+  const maxWidth = SketchApp.canvas.width * 0.8;
+  const maxHeight = SketchApp.canvas.height * 0.8;
+  if (newWidth > maxWidth) {
+    newWidth = maxWidth;
+    newHeight = newWidth / aspectRatio;
+  }
+  if (newHeight > maxHeight) {
+    newHeight = maxHeight;
+    newWidth = newHeight * aspectRatio;
+  }
+  
+  // 写真要素のサイズを更新
+  const photoElement = document.getElementById(`photo-${SketchApp.selectedPhoto.id}`);
+  if (photoElement) {
+    photoElement.style.width = `${newWidth}px`;
+    photoElement.style.height = `${newHeight}px`;
+    
+    // 写真オブジェクトのサイズも更新
+    SketchApp.selectedPhoto.width = newWidth;
+    SketchApp.selectedPhoto.height = newHeight;
+  }
+};
+
+// リサイズ終了のタッチ終了イベントハンドラ
+SketchApp.Photo.handleResizeTouchEnd = function() {
+  if (!SketchApp.Photo.isResizing) return;
+  
+  SketchApp.Photo.isResizing = false;
+  
+  // イベントリスナーを削除
+  document.removeEventListener('touchmove', SketchApp.Photo.handleResizeTouchMove);
+  document.removeEventListener('touchend', SketchApp.Photo.handleResizeTouchEnd);
+  
+  console.log(`写真をリサイズしました (ID: ${SketchApp.selectedPhoto.id}, サイズ: ${SketchApp.selectedPhoto.width}x${SketchApp.selectedPhoto.height})`);
 };

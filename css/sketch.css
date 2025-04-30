@@ -132,6 +132,23 @@ body {
   display: block;
 }
 
+.resize-handle {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  background-color: #4A90E2;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: nwse-resize;
+  display: none;
+}
+
+.photo-container.selected .resize-handle {
+  display: block;
+}
+
 .drawing-toolbar {
   position: absolute;
   top: 10px;
