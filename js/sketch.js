@@ -19,6 +19,14 @@ SketchApp.init = function() {
   // キャンバス関連の変数
   SketchApp.canvas = document.getElementById('canvas');
   SketchApp.ctx = SketchApp.canvas.getContext('2d');
+  
+  // 初期ツールがペンなので、キャンバスのポインターイベントを有効化
+  SketchApp.canvas.style.pointerEvents = 'auto';
+  
+  // オーバーレイキャンバス（写真の上に描画するためのキャンバス）
+  SketchApp.overlayCanvas = document.getElementById('overlay-canvas');
+  SketchApp.overlayCtx = SketchApp.overlayCanvas.getContext('2d');
+  
   SketchApp.currentTool = 'pen';
   SketchApp.currentColor = '#000000';
   SketchApp.currentSize = 5;
@@ -63,10 +71,14 @@ SketchApp.init = function() {
 SketchApp.resizeCanvas = function() {
   // 現在のキャンバス内容を一時保存
   let imageData = null;
+  let overlayImageData = null;
   try {
     // キャンバスが初期化されている場合のみ保存を試みる
     if (SketchApp.canvas.width > 0 && SketchApp.canvas.height > 0) {
       imageData = SketchApp.ctx.getImageData(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
+    }
+    if (SketchApp.overlayCanvas.width > 0 && SketchApp.overlayCanvas.height > 0) {
+      overlayImageData = SketchApp.overlayCtx.getImageData(0, 0, SketchApp.overlayCanvas.width, SketchApp.overlayCanvas.height);
     }
   } catch (e) {
     console.log('キャンバス内容の保存に失敗しました:', e);
@@ -76,12 +88,17 @@ SketchApp.resizeCanvas = function() {
   const drawingArea = document.querySelector('.drawing-area');
   const newWidth = drawingArea.clientWidth;
   const newHeight = drawingArea.clientHeight;
+  
+  // 背景キャンバスのサイズ設定
   SketchApp.canvas.width = newWidth;
   SketchApp.canvas.height = newHeight;
   
-  // 背景を白で塗りつぶす
-  SketchApp.ctx.fillStyle = '#fff';
-  SketchApp.ctx.fillRect(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
+  // 背景を透明にする
+  SketchApp.ctx.clearRect(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
+  
+  // オーバーレイキャンバスのサイズ設定
+  SketchApp.overlayCanvas.width = newWidth;
+  SketchApp.overlayCanvas.height = newHeight;
   
   // 保存した内容を復元（存在する場合）
   if (imageData) {
@@ -92,21 +109,29 @@ SketchApp.resizeCanvas = function() {
     }
   }
   
+  if (overlayImageData) {
+    try {
+      SketchApp.overlayCtx.putImageData(overlayImageData, 0, 0);
+    } catch (e) {
+      console.log('オーバーレイキャンバス内容の復元に失敗しました:', e);
+    }
+  }
+  
   console.log(`キャンバスサイズ: ${SketchApp.canvas.width}x${SketchApp.canvas.height}`);
 };
 
 // イベントリスナーの設定
 SketchApp.setupEventListeners = function() {
-  // 描画イベント
-  SketchApp.canvas.addEventListener('mousedown', SketchApp.Drawing.handleCanvasMouseDown);
-  SketchApp.canvas.addEventListener('mousemove', SketchApp.Drawing.handleCanvasMouseMove);
-  SketchApp.canvas.addEventListener('mouseup', SketchApp.Drawing.handleCanvasMouseUp);
-  SketchApp.canvas.addEventListener('mouseout', SketchApp.Drawing.handleCanvasMouseOut);
+  // 描画イベント（描画エリア全体に対して設定）
+  SketchApp.drawingArea.addEventListener('mousedown', SketchApp.Drawing.handleCanvasMouseDown);
+  SketchApp.drawingArea.addEventListener('mousemove', SketchApp.Drawing.handleCanvasMouseMove);
+  SketchApp.drawingArea.addEventListener('mouseup', SketchApp.Drawing.handleCanvasMouseUp);
+  SketchApp.drawingArea.addEventListener('mouseout', SketchApp.Drawing.handleCanvasMouseOut);
   
-  // タッチイベント
-  SketchApp.canvas.addEventListener('touchstart', SketchApp.Drawing.handleCanvasTouchStart);
-  SketchApp.canvas.addEventListener('touchmove', SketchApp.Drawing.handleCanvasTouchMove);
-  SketchApp.canvas.addEventListener('touchend', SketchApp.Drawing.handleCanvasTouchEnd);
+  // タッチイベント（描画エリア全体に対して設定）
+  SketchApp.drawingArea.addEventListener('touchstart', SketchApp.Drawing.handleCanvasTouchStart);
+  SketchApp.drawingArea.addEventListener('touchmove', SketchApp.Drawing.handleCanvasTouchMove);
+  SketchApp.drawingArea.addEventListener('touchend', SketchApp.Drawing.handleCanvasTouchEnd);
   
   // 写真のドラッグイベント（描画エリア全体に対して一度だけ設定）
   SketchApp.drawingArea.addEventListener('mousemove', SketchApp.Photo.handleDrawingAreaMouseMove);
@@ -123,11 +148,13 @@ SketchApp.setupEventListeners = function() {
       console.log(`ツール変更: ${tool}`);
       SketchApp.currentTool = tool;
       
-      // 選択ツールに切り替えた場合、カーソルを変更
+      // 選択ツールに切り替えた場合、カーソルを変更し、キャンバスのポインターイベントを無効化
       if (tool === 'select') {
         SketchApp.canvas.style.cursor = 'default';
+        SketchApp.canvas.style.pointerEvents = 'none'; // 選択ツールの場合はキャンバスのイベントを無効化
       } else {
         SketchApp.canvas.style.cursor = 'crosshair';
+        SketchApp.canvas.style.pointerEvents = 'auto'; // 描画ツールの場合はキャンバスのイベントを有効化
       }
       
       // アクティブクラスの切り替え
@@ -170,8 +197,8 @@ SketchApp.setupEventListeners = function() {
   // クリアボタン
   SketchApp.clearButton.addEventListener('click', () => {
     console.log('キャンバスをクリア');
-    SketchApp.ctx.fillStyle = '#fff';
-    SketchApp.ctx.fillRect(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
+    // キャンバスを透明にクリア
+    SketchApp.ctx.clearRect(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
     
     // 写真も全て削除
     SketchApp.Photo.removeAllPhotos();

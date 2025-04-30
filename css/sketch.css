@@ -90,7 +90,11 @@ body {
   width: 100%;
   height: 100%;
   cursor: crosshair;
-  z-index: 1;
+  z-index: 3; /* 写真の上に配置 */
+}
+
+#overlay-canvas {
+  display: none; /* 使用しないので非表示に */
 }
 
 .photo-container {

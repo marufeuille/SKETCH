@@ -20,11 +20,11 @@ SketchApp.Save.saveCanvas = function() {
   tempCtx.fillStyle = '#fff';
   tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
   
-  // 元のキャンバスの内容をコピー
-  tempCtx.drawImage(SketchApp.canvas, 0, 0);
-  
   // 写真を描画
   SketchApp.Save.drawPhotosToCanvas(tempCtx);
+  
+  // 描画内容をコピー
+  tempCtx.drawImage(SketchApp.canvas, 0, 0);
   
   // データURLに変換
   const dataURL = tempCanvas.toDataURL('image/png');
