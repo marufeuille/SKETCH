@@ -61,13 +61,36 @@ SketchApp.init = function() {
 
 // キャンバスのリサイズ
 SketchApp.resizeCanvas = function() {
-  const drawingArea = document.querySelector('.drawing-area');
-  SketchApp.canvas.width = drawingArea.clientWidth;
-  SketchApp.canvas.height = drawingArea.clientHeight;
+  // 現在のキャンバス内容を一時保存
+  let imageData = null;
+  try {
+    // キャンバスが初期化されている場合のみ保存を試みる
+    if (SketchApp.canvas.width > 0 && SketchApp.canvas.height > 0) {
+      imageData = SketchApp.ctx.getImageData(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
+    }
+  } catch (e) {
+    console.log('キャンバス内容の保存に失敗しました:', e);
+  }
   
-  // キャンバスをクリア
+  // キャンバスサイズを更新
+  const drawingArea = document.querySelector('.drawing-area');
+  const newWidth = drawingArea.clientWidth;
+  const newHeight = drawingArea.clientHeight;
+  SketchApp.canvas.width = newWidth;
+  SketchApp.canvas.height = newHeight;
+  
+  // 背景を白で塗りつぶす
   SketchApp.ctx.fillStyle = '#fff';
   SketchApp.ctx.fillRect(0, 0, SketchApp.canvas.width, SketchApp.canvas.height);
+  
+  // 保存した内容を復元（存在する場合）
+  if (imageData) {
+    try {
+      SketchApp.ctx.putImageData(imageData, 0, 0);
+    } catch (e) {
+      console.log('キャンバス内容の復元に失敗しました:', e);
+    }
+  }
   
   console.log(`キャンバスサイズ: ${SketchApp.canvas.width}x${SketchApp.canvas.height}`);
 };
